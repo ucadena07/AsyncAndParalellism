@@ -21,13 +21,21 @@ namespace WinForms
 
             var name = txtInput.Text;
 
-            var greeting = await GetGreetings(name);
+            try
+            {
+                var greeting = await GetGreetings(name);
+                MessageBox.Show(greeting);
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show(ex.Message);
+            }
+
 
             lodingGif.Visible = false;
 
-            MessageBox.Show(greeting);
 
-    
         }
 
         async Task Wait()
@@ -35,18 +43,19 @@ namespace WinForms
             await Task.Delay(0);
         }
 
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
 
         async Task<string> GetGreetings(string name)
         {
-            using (var response = await _httpClient.GetAsync($"{_baseUrl}/greetings/{name}"))
+            using (var response = await _httpClient.GetAsync($"{_baseUrl}/greetings2/{name}"))
             {
+                response.EnsureSuccessStatusCode(); 
                 var greeting = await response.Content.ReadAsStringAsync();
                 return greeting;
             }
+        }
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
