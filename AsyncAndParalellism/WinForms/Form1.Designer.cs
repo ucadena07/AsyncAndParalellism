@@ -65,7 +65,7 @@
             this.label1.Size = new System.Drawing.Size(35, 15);
             this.label1.TabIndex = 2;
             this.label1.Text = "Input";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
+    
             // 
             // txtInput
             // 
@@ -85,6 +85,7 @@
             this.Controls.Add(this.btnStart);
             this.Name = "Form1";
             this.Text = "Form1";
+      
             ((System.ComponentModel.ISupportInitialize)(this.lodingGif)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
