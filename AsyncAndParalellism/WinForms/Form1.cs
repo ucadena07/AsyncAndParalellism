@@ -26,7 +26,7 @@ namespace WinForms
 
             try
             {
-                var cards = GetCards(1000);
+                var cards = await GetCards(1000);
                 stopwatch.Start();  
                 await ProcessCards(cards);
 
@@ -44,28 +44,50 @@ namespace WinForms
 
         }
 
-        List<string> GetCards(int amount)
+        async Task<List<string>> GetCards(int amount)
         {
-            var cards = new List<string>();
-            for (int i = 0; i < amount; i++)
+            //var cards = new List<string>();
+            //for (int i = 0; i < amount; i++)
+            //{
+            //    cards.Add(i.ToString().PadLeft(16,'0')) ;
+            //}
+            //return cards;
+
+            return await Task.Run(() =>
             {
-                cards.Add(i.ToString().PadLeft(16,'0')) ;
-            }
-            return cards;
+                var cards = new List<string>();
+                for (int i = 0; i < amount; i++)
+                {
+                    cards.Add(i.ToString().PadLeft(16, '0'));
+                }
+                return cards;
+            });
         }
 
         async Task ProcessCards(List<string> cards)
         {
             var tasks = new List<Task<HttpResponseMessage>>();
 
-            foreach (var card in cards)
-            {
-                var json = JsonSerializer.Serialize(card);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var responseTask = _httpClient.PostAsync($"{_baseUrl}/cards",content);
+            //foreach (var card in cards)
+            //{
+            //    var json = JsonSerializer.Serialize(card);
+            //    var content = new StringContent(json, Encoding.UTF8, "application/json");
+            //    var responseTask = _httpClient.PostAsync($"{_baseUrl}/cards",content);
 
-                tasks.Add(responseTask);    
-            }
+            //    tasks.Add(responseTask);    
+            //}
+
+            await Task.Run( () =>
+            {
+                foreach (var card in cards)
+                {
+                    var json = JsonSerializer.Serialize(card);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    var responseTask = _httpClient.PostAsync($"{_baseUrl}/cards", content);
+
+                    tasks.Add(responseTask);
+                }
+            });
 
             await Task.WhenAll(tasks);
         }
