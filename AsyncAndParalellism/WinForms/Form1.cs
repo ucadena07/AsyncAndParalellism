@@ -91,7 +91,25 @@ namespace WinForms
 
 
 
-            await Task.WhenAll(tasks);
+            var responses = await Task.WhenAll(tasks);
+
+            var rejectedCards = new List<string>();
+
+            foreach (var res in responses) 
+            {
+                
+                var content = await res.Content.ReadAsStringAsync();    
+                var responseCard = JsonSerializer.Deserialize<CardResponse>(content);
+                if (!responseCard.approved)
+                {
+                    rejectedCards.Add(responseCard.card);   
+                }
+            }
+
+            foreach (var card in rejectedCards)
+            {
+                Console.WriteLine($"Card {card} was rejected");    
+            }
         }
 
     }

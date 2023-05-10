@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ucade_lbz6a\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WinForms\\WinForms.csproj",
+      "projectUniqueName": "C:\\Users\\ucade_lbz6a\\OneDrive\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WinForms\\WinForms.csproj",
       "projectName": "WinForms",
-      "projectPath": "C:\\Users\\ucade_lbz6a\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WinForms\\WinForms.csproj",
+      "projectPath": "C:\\Users\\ucade_lbz6a\\OneDrive\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WinForms\\WinForms.csproj",
       "packagesPath": "C:\\Users\\ucade_lbz6a\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ucade_lbz6a\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WinForms\\obj\\",
+      "outputPath": "C:\\Users\\ucade_lbz6a\\OneDrive\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WinForms\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\ucade_lbz6a\\AppData\\Roaming\\NuGet\\NuGet.Config",

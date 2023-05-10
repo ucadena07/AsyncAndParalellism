@@ -465,11 +465,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ucade_lbz6a\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WebApi\\WebApi.csproj",
+      "projectUniqueName": "C:\\Users\\ucade_lbz6a\\OneDrive\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WebApi\\WebApi.csproj",
       "projectName": "WebApi",
-      "projectPath": "C:\\Users\\ucade_lbz6a\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WebApi\\WebApi.csproj",
+      "projectPath": "C:\\Users\\ucade_lbz6a\\OneDrive\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WebApi\\WebApi.csproj",
       "packagesPath": "C:\\Users\\ucade_lbz6a\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ucade_lbz6a\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WebApi\\obj\\",
+      "outputPath": "C:\\Users\\ucade_lbz6a\\OneDrive\\Documents\\ASP.NET\\Concurrency\\AsyncAndParalellism\\WebApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\ucade_lbz6a\\AppData\\Roaming\\NuGet\\NuGet.Config",
