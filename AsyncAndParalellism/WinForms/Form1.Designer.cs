@@ -29,67 +29,74 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.btnStart = new System.Windows.Forms.Button();
-            this.lodingGif = new System.Windows.Forms.PictureBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.txtInput = new System.Windows.Forms.TextBox();
-            ((System.ComponentModel.ISupportInitialize)(this.lodingGif)).BeginInit();
-            this.SuspendLayout();
+            btnStart = new Button();
+            lodingGif = new PictureBox();
+            label1 = new Label();
+            txtInput = new TextBox();
+            pgBar = new ProgressBar();
+            ((System.ComponentModel.ISupportInitialize)lodingGif).BeginInit();
+            SuspendLayout();
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(29, 68);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(75, 23);
-            this.btnStart.TabIndex = 0;
-            this.btnStart.Text = "Start";
-            this.btnStart.UseVisualStyleBackColor = true;
-            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
+            btnStart.Location = new Point(29, 68);
+            btnStart.Name = "btnStart";
+            btnStart.Size = new Size(75, 23);
+            btnStart.TabIndex = 0;
+            btnStart.Text = "Start";
+            btnStart.UseVisualStyleBackColor = true;
+            btnStart.Click += btnStart_Click;
             // 
             // lodingGif
             // 
-            this.lodingGif.Image = ((System.Drawing.Image)(resources.GetObject("lodingGif.Image")));
-            this.lodingGif.Location = new System.Drawing.Point(29, 136);
-            this.lodingGif.Name = "lodingGif";
-            this.lodingGif.Size = new System.Drawing.Size(562, 302);
-            this.lodingGif.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
-            this.lodingGif.TabIndex = 1;
-            this.lodingGif.TabStop = false;
-            this.lodingGif.Visible = false;
+            lodingGif.Image = (Image)resources.GetObject("lodingGif.Image");
+            lodingGif.Location = new Point(29, 160);
+            lodingGif.Name = "lodingGif";
+            lodingGif.Size = new Size(562, 302);
+            lodingGif.SizeMode = PictureBoxSizeMode.CenterImage;
+            lodingGif.TabIndex = 1;
+            lodingGif.TabStop = false;
+            lodingGif.Visible = false;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(29, 21);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(35, 15);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Input";
-    
+            label1.AutoSize = true;
+            label1.Location = new Point(29, 21);
+            label1.Name = "label1";
+            label1.Size = new Size(35, 15);
+            label1.TabIndex = 2;
+            label1.Text = "Input";
             // 
             // txtInput
             // 
-            this.txtInput.Location = new System.Drawing.Point(106, 21);
-            this.txtInput.Name = "txtInput";
-            this.txtInput.Size = new System.Drawing.Size(164, 23);
-            this.txtInput.TabIndex = 3;
+            txtInput.Location = new Point(106, 21);
+            txtInput.Name = "txtInput";
+            txtInput.Size = new Size(164, 23);
+            txtInput.TabIndex = 3;
+            // 
+            // pgBar
+            // 
+            pgBar.Location = new Point(29, 119);
+            pgBar.Name = "pgBar";
+            pgBar.Size = new Size(562, 23);
+            pgBar.TabIndex = 4;
+            pgBar.Visible = false;
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.txtInput);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.lodingGif);
-            this.Controls.Add(this.btnStart);
-            this.Name = "Form1";
-            this.Text = "Form1";
-      
-            ((System.ComponentModel.ISupportInitialize)(this.lodingGif)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(821, 517);
+            Controls.Add(pgBar);
+            Controls.Add(txtInput);
+            Controls.Add(label1);
+            Controls.Add(lodingGif);
+            Controls.Add(btnStart);
+            Name = "Form1";
+            Text = "Form1";
+            ((System.ComponentModel.ISupportInitialize)lodingGif).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -98,5 +105,6 @@
         private PictureBox lodingGif;
         private Label label1;
         private TextBox txtInput;
+        private ProgressBar pgBar;
     }
 }

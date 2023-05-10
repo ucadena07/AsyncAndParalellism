@@ -20,15 +20,17 @@ namespace WinForms
 
         private async void btnStart_Click(object sender, EventArgs e)
         {
-            lodingGif.Visible= true;
+            lodingGif.Visible = true;
+            var progressReport = new Progress<int>(ReportCardProcessingProgress);
+
 
             var stopwatch = new Stopwatch();
 
             try
             {
                 var cards = await GetCards(1000);
-                stopwatch.Start();  
-                await ProcessCards(cards);
+                stopwatch.Start();
+                await ProcessCards(cards, progressReport);
 
             }
             catch (Exception ex)
@@ -40,8 +42,14 @@ namespace WinForms
             MessageBox.Show($"Operation done in {stopwatch.ElapsedMilliseconds / 1000} seconds");
 
             lodingGif.Visible = false;
+            pgBar.Visible = false;
+            pgBar.Value = 0;
 
+        }
 
+        void ReportCardProcessingProgress(int percentage)
+        {
+            pgBar.Value = percentage;
         }
 
         async Task<List<string>> GetCards(int amount)
@@ -64,10 +72,12 @@ namespace WinForms
             });
         }
 
-        async Task ProcessCards(List<string> cards)
+        async Task ProcessCards(List<string> cards, IProgress<int> progress = null)
         {
             using var semaphore = new SemaphoreSlim(250);
             var tasks = new List<Task<HttpResponseMessage>>();
+            pgBar.Visible = true;   
+            var taskResolved = 0;
 
             tasks = cards.Select(async card =>
             {
@@ -78,14 +88,25 @@ namespace WinForms
 
                 try
                 {
-                    return await _httpClient.PostAsync($"{_baseUrl}/cards", content);
+                    var internalTask = await _httpClient.PostAsync($"{_baseUrl}/cards", content);
+
+                    if (progress is not null)
+                    {
+                        taskResolved++;
+                        var percentage = (double)taskResolved / cards.Count;
+                        percentage = percentage * 100;
+                        var percentageInt = (int)Math.Round(percentage);
+                        progress.Report(percentageInt);
+                    }
+
+                    return internalTask;
                 }
                 finally
                 {
 
                     semaphore.Release();
                 }
-  
+
             }).ToList();
 
 
@@ -95,20 +116,20 @@ namespace WinForms
 
             var rejectedCards = new List<string>();
 
-            foreach (var res in responses) 
+            foreach (var res in responses)
             {
-                
-                var content = await res.Content.ReadAsStringAsync();    
+
+                var content = await res.Content.ReadAsStringAsync();
                 var responseCard = JsonSerializer.Deserialize<CardResponse>(content);
                 if (!responseCard.approved)
                 {
-                    rejectedCards.Add(responseCard.card);   
+                    rejectedCards.Add(responseCard.card);
                 }
             }
 
             foreach (var card in rejectedCards)
             {
-                Console.WriteLine($"Card {card} was rejected");    
+                Console.WriteLine($"Card {card} was rejected");
             }
         }
 
