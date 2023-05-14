@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using WinForms;
 
 namespace WinForms
 {
@@ -77,7 +78,7 @@ namespace WinForms
             using var semaphore = new SemaphoreSlim(250);
             var tasks = new List<Task<HttpResponseMessage>>();
             pgBar.Visible = true;   
-            var taskResolved = 0;
+          
 
             tasks = cards.Select(async card =>
             {
@@ -90,14 +91,7 @@ namespace WinForms
                 {
                     var internalTask = await _httpClient.PostAsync($"{_baseUrl}/cards", content);
 
-                    if (progress is not null)
-                    {
-                        taskResolved++;
-                        var percentage = (double)taskResolved / cards.Count;
-                        percentage = percentage * 100;
-                        var percentageInt = (int)Math.Round(percentage);
-                        progress.Report(percentageInt);
-                    }
+
 
                     return internalTask;
                 }
@@ -112,7 +106,22 @@ namespace WinForms
 
 
 
-            var responses = await Task.WhenAll(tasks);
+            var responsesTasks =  Task.WhenAll(tasks);
+
+            if(progress is not null)
+            {
+                while(await Task.WhenAny(responsesTasks, Task.Delay(1000)) != responsesTasks)
+                {
+                    var completedTasks = tasks.Where(x => x.IsCompleted).Count();
+                    var percentage = (double)completedTasks / tasks.Count();
+                    percentage = percentage * 100;
+                    var percentageInt = (int)Math.Round(percentage,0);
+                    progress.Report(percentageInt);
+
+                }
+            }
+            //Will not run twice -- it will take a look at the completed property
+            var responses = await responsesTasks;
 
             var rejectedCards = new List<string>();
 
@@ -206,4 +215,66 @@ namespace WinForms
 //    });
 
 //    await Task.WhenAll(tasks);
+//}
+
+//REPORTING WITH IPROGRESS AND WHEN ALL
+//async Task ProcessCards(List<string> cards, IProgress<int> progress = null)
+//{
+//    using var semaphore = new SemaphoreSlim(250);
+//    var tasks = new List<Task<HttpResponseMessage>>();
+//    pgBar.Visible = true;
+//    var taskResolved = 0;
+
+//    tasks = cards.Select(async card =>
+//    {
+//        var json = JsonSerializer.Serialize(card);
+//        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+//        await semaphore.WaitAsync();
+
+//        try
+//        {
+//            var internalTask = await _httpClient.PostAsync($"{_baseUrl}/cards", content);
+
+//            if (progress is not null)
+//            {
+//                taskResolved++;
+//                var percentage = (double)taskResolved / cards.Count;
+//                percentage = percentage * 100;
+//                var percentageInt = (int)Math.Round(percentage);
+//                progress.Report(percentageInt);
+//            }
+
+//            return internalTask;
+//        }
+//        finally
+//        {
+
+//            semaphore.Release();
+//        }
+
+//    }).ToList();
+
+
+
+
+//    var responses = await Task.WhenAll(tasks);
+
+//    var rejectedCards = new List<string>();
+
+//    foreach (var res in responses)
+//    {
+
+//        var content = await res.Content.ReadAsStringAsync();
+//        var responseCard = JsonSerializer.Deserialize<CardResponse>(content);
+//        if (!responseCard.approved)
+//        {
+//            rejectedCards.Add(responseCard.card);
+//        }
+//    }
+
+//    foreach (var card in rejectedCards)
+//    {
+//        Console.WriteLine($"Card {card} was rejected");
+//    }
 //}
