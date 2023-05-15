@@ -11,16 +11,20 @@ namespace WinForms
         public string _baseUrl { get; set; }
 
         private readonly HttpClient _httpClient;
+        private CancellationTokenSource _cts;
 
         public Form1()
         {
             InitializeComponent();
             _baseUrl = "https://localhost:7014/api";
             _httpClient = new HttpClient();
+
+
         }
 
-        private async void btnStart_Click(object sender, EventArgs e)
+        private async void btnStart_Click_1(object sender, EventArgs e)
         {
+            _cts = new CancellationTokenSource();
             lodingGif.Visible = true;
             var progressReport = new Progress<int>(ReportCardProcessingProgress);
 
@@ -29,15 +33,23 @@ namespace WinForms
 
             try
             {
-                var cards = await GetCards(1000);
+                var cards = await GetCards(100, _cts.Token);
                 stopwatch.Start();
-                await ProcessCards(cards, progressReport);
+                await ProcessCards(cards, progressReport, _cts.Token);
 
+            }
+            catch(TaskCanceledException cex)
+            {
+                MessageBox.Show("The operation was canceled");
             }
             catch (Exception ex)
             {
 
                 MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                _cts.Dispose(); 
             }
 
             MessageBox.Show($"Operation done in {stopwatch.ElapsedMilliseconds / 1000} seconds");
@@ -45,6 +57,7 @@ namespace WinForms
             lodingGif.Visible = false;
             pgBar.Visible = false;
             pgBar.Value = 0;
+            _cts = null;
 
         }
 
@@ -53,7 +66,7 @@ namespace WinForms
             pgBar.Value = percentage;
         }
 
-        async Task<List<string>> GetCards(int amount)
+        async Task<List<string>> GetCards(int amount, CancellationToken token = default)
         {
             //var cards = new List<string>();
             //for (int i = 0; i < amount; i++)
@@ -68,32 +81,43 @@ namespace WinForms
                 for (int i = 0; i < amount; i++)
                 {
                     cards.Add(i.ToString().PadLeft(16, '0'));
+                    if (token.IsCancellationRequested)
+                    {
+                        throw new TaskCanceledException();
+                    }
                 }
                 return cards;
             });
         }
 
-        async Task ProcessCards(List<string> cards, IProgress<int> progress = null)
+        async Task ProcessCards(List<string> cards, IProgress<int> progress = null, CancellationToken token = default)
         {
-            using var semaphore = new SemaphoreSlim(250);
+            using var semaphore = new SemaphoreSlim(25);
             var tasks = new List<Task<HttpResponseMessage>>();
-            pgBar.Visible = true;   
-          
+            pgBar.Visible = true;
+
 
             tasks = cards.Select(async card =>
             {
                 var json = JsonSerializer.Serialize(card);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-
+                token.ThrowIfCancellationRequested();
                 await semaphore.WaitAsync();
 
                 try
                 {
-                    var internalTask = await _httpClient.PostAsync($"{_baseUrl}/cards", content);
 
-
-
-                    return internalTask;
+                    if (!token.IsCancellationRequested)
+                    {
+                        var internalTask = await _httpClient.PostAsync($"{_baseUrl}/cards", content, token);
+                        return internalTask;
+                    }
+                    else
+                    {
+                        token.ThrowIfCancellationRequested();
+                        return null;
+                    }
+                   
                 }
                 finally
                 {
@@ -102,21 +126,29 @@ namespace WinForms
                 }
 
             }).ToList();
+            token.ThrowIfCancellationRequested();
 
 
 
+            var responsesTasks = Task.WhenAll(tasks);
 
-            var responsesTasks =  Task.WhenAll(tasks);
-
-            if(progress is not null)
+            if (progress is not null)
             {
-                while(await Task.WhenAny(responsesTasks, Task.Delay(1000)) != responsesTasks)
+                while (await Task.WhenAny(responsesTasks, Task.Delay(1000)) != responsesTasks)
                 {
-                    var completedTasks = tasks.Where(x => x.IsCompleted).Count();
-                    var percentage = (double)completedTasks / tasks.Count();
-                    percentage = percentage * 100;
-                    var percentageInt = (int)Math.Round(percentage,0);
-                    progress.Report(percentageInt);
+
+                    if (!token.IsCancellationRequested)
+                    {
+                        var completedTasks = tasks.Where(x => x.IsCompleted).Count();
+                        var percentage = (double)completedTasks / tasks.Count();
+                        percentage = percentage * 100;
+                        var percentageInt = (int)Math.Round(percentage, 0);
+                        progress.Report(percentageInt);
+                    }
+                    else
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
 
                 }
             }
@@ -140,6 +172,17 @@ namespace WinForms
             {
                 Console.WriteLine($"Card {card} was rejected");
             }
+        }
+
+        private void btnCancel_Click_1(object sender, EventArgs e)
+        {
+            _cts?.Cancel();
+
+        }
+
+        private void lodingGif_Click(object sender, EventArgs e)
+        {
+
         }
 
     }
