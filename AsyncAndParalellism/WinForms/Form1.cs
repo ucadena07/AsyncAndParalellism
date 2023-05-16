@@ -38,7 +38,7 @@ namespace WinForms
                 await ProcessCards(cards, progressReport, _cts.Token);
 
             }
-            catch(TaskCanceledException cex)
+            catch (TaskCanceledException cex)
             {
                 MessageBox.Show("The operation was canceled");
             }
@@ -49,7 +49,7 @@ namespace WinForms
             }
             finally
             {
-                _cts.Dispose(); 
+                _cts.Dispose();
             }
 
             MessageBox.Show($"Operation done in {stopwatch.ElapsedMilliseconds / 1000} seconds");
@@ -89,6 +89,28 @@ namespace WinForms
                 return cards;
             });
         }
+        Task ProcessCardsMock(List<string> cards, IProgress<int> progress = null, CancellationToken token = default)
+        {
+            //...
+            return Task.CompletedTask;
+        }
+        Task<List<string>> GetCardsMock(int amount, CancellationToken token = default)
+        {
+            var cards = new List<string>();
+            cards.Add("001");
+            return Task.FromResult(cards);
+        }
+
+        Task CreateTaskWithException()
+        {
+            return Task.FromException(new ApplicationException());
+        }
+
+        Task CreateTaskCanceled()
+        {
+            var ct2 = new CancellationTokenSource();
+            return Task.FromCanceled(ct2.Token);
+        }
 
         async Task ProcessCards(List<string> cards, IProgress<int> progress = null, CancellationToken token = default)
         {
@@ -106,7 +128,7 @@ namespace WinForms
 
                 try
                 {
-
+                    token.ThrowIfCancellationRequested();
                     if (!token.IsCancellationRequested)
                     {
                         var internalTask = await _httpClient.PostAsync($"{_baseUrl}/cards", content, token);
@@ -117,7 +139,7 @@ namespace WinForms
                         token.ThrowIfCancellationRequested();
                         return null;
                     }
-                   
+
                 }
                 finally
                 {
@@ -130,7 +152,7 @@ namespace WinForms
 
 
 
-            var responsesTasks = Task.WhenAll(tasks);
+            var responsesTasks = await Task.WhenAny(tasks);
 
             if (progress is not null)
             {
