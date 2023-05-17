@@ -24,41 +24,84 @@ namespace WinForms
 
         private async void btnStart_Click_1(object sender, EventArgs e)
         {
-            _cts = new CancellationTokenSource();
+
             lodingGif.Visible = true;
-            var progressReport = new Progress<int>(ReportCardProcessingProgress);
-
-
-            var stopwatch = new Stopwatch();
 
             try
             {
-                var cards = await GetCards(100, _cts.Token);
-                stopwatch.Start();
-                await ProcessCards(cards, progressReport, _cts.Token);
 
-            }
-            catch (TaskCanceledException cex)
-            {
-                MessageBox.Show("The operation was canceled");
+                var txt = await Retry(ProcessGreetingsRet);
+                Console.WriteLine(txt);
             }
             catch (Exception ex)
             {
 
-                MessageBox.Show(ex.Message);
-            }
-            finally
-            {
-                _cts.Dispose();
+                Console.WriteLine("FAILED");
             }
 
-            MessageBox.Show($"Operation done in {stopwatch.ElapsedMilliseconds / 1000} seconds");
 
             lodingGif.Visible = false;
-            pgBar.Visible = false;
-            pgBar.Value = 0;
-            _cts = null;
 
+
+        }
+
+        async Task ProcessGreetings()
+        {
+            using (var response = await _httpClient.GetAsync($"{_baseUrl}/greetings/Ulises"))
+            {
+                response.EnsureSuccessStatusCode();
+                var greeting = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(greeting);
+            }
+        }
+
+        async Task<string> ProcessGreetingsRet()
+        {
+            using (var response = await _httpClient.GetAsync($"{_baseUrl}/greetings/Ulises"))
+            {
+                response.EnsureSuccessStatusCode();
+                var greeting = await response.Content.ReadAsStringAsync();
+                //Console.WriteLine(greeting);
+                return greeting;    
+            }
+        }
+
+        async Task Retry(Func<Task> f, int retryTimes = 3, int waitTime = 500)
+        {
+            for (int i = 0; i < retryTimes - 1; i++)
+            {
+                try
+                {
+                    await f();
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    await Task.Delay(waitTime);
+                }
+      
+            }
+            await f();
+        }
+
+
+        async Task<T> Retry<T>(Func<Task<T>> f, int retryTimes = 3, int waitTime = 500)
+        {
+            for (int i = 0; i < retryTimes - 1; i++)
+            {
+                try
+                {
+                    return await f();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    await Task.Delay(waitTime);
+                }
+
+            }
+            return await f();
         }
 
         void ReportCardProcessingProgress(int percentage)
@@ -152,7 +195,7 @@ namespace WinForms
 
 
 
-            var responsesTasks = await Task.WhenAny(tasks);
+            var responsesTasks = Task.WhenAll(tasks);
 
             if (progress is not null)
             {
@@ -342,4 +385,44 @@ namespace WinForms
 //    {
 //        Console.WriteLine($"Card {card} was rejected");
 //    }
+//}
+
+//CANCELING TASKS
+//private async void btnStart_Click_1(object sender, EventArgs e)
+//{
+//    _cts = new CancellationTokenSource();
+//    lodingGif.Visible = true;
+//    var progressReport = new Progress<int>(ReportCardProcessingProgress);
+
+
+//    var stopwatch = new Stopwatch();
+
+//    try
+//    {
+//        var cards = await GetCards(100, _cts.Token);
+//        stopwatch.Start();
+//        await ProcessCards(cards, progressReport, _cts.Token);
+
+//    }
+//    catch (TaskCanceledException cex)
+//    {
+//        MessageBox.Show("The operation was canceled");
+//    }
+//    catch (Exception ex)
+//    {
+
+//        MessageBox.Show(ex.Message);
+//    }
+//    finally
+//    {
+//        _cts.Dispose();
+//    }
+
+//    MessageBox.Show($"Operation done in {stopwatch.ElapsedMilliseconds / 1000} seconds");
+
+//    lodingGif.Visible = false;
+//    pgBar.Visible = false;
+//    pgBar.Value = 0;
+//    _cts = null;
+
 //}
