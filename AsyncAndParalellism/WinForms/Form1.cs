@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
 using WinForms;
@@ -27,22 +28,58 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            try
-            {
+            //_cts = new();
+            //var token = _cts.Token;
+            //var names = new List<string>() { "Uli","Haylee","Henry","Nigel"};
 
-                var txt = await Retry(ProcessGreetingsRet);
-                Console.WriteLine(txt);
-            }
-            catch (Exception ex)
-            {
+            //var httpTasks = names.Select(x => GetGreetings(x, token));
 
-                Console.WriteLine("FAILED");
-            }
+            //var task = await Task.WhenAny(httpTasks);    
+            //var content = await task;
+            //_cts.Cancel();  
+            //Console.WriteLine(content);
 
+            //var names = new List<string>() { "Uli","Haylee","Henry","Nigel"};
+            //var tasks = names.Select(name =>
+            //{
+            //    Func<CancellationToken, Task<string>> func = (ct) => GetGreetings(name, ct);
+            //    return func;
+            //});
 
+            //var content = await OnlyOne(tasks);
+            //Console.WriteLine(content);
+
+            var content = await OnlyOne(
+
+                (ct) => GetGreetings("Ulises", ct),
+                (ct) => GetGoodBye("Ulises", ct)
+                
+                );
+
+            Console.WriteLine(content);
             lodingGif.Visible = false;
 
 
+        }
+
+        async Task<string> GetGreetings(string name, CancellationToken token)
+        {
+            using (var response = await _httpClient.GetAsync($"{_baseUrl}/Greetings/GetGreetings/{name}", token))
+            {
+                response.EnsureSuccessStatusCode();
+                var greeting = await response.Content.ReadAsStringAsync();
+                return greeting;
+            }
+        }
+
+        async Task<string> GetGoodBye(string name, CancellationToken token)
+        {
+            using (var response = await _httpClient.GetAsync($"{_baseUrl}/Greetings/GetGoodbye/{name}", token))
+            {
+                response.EnsureSuccessStatusCode();
+                var greeting = await response.Content.ReadAsStringAsync();
+                return greeting;
+            }
         }
 
         async Task ProcessGreetings()
@@ -64,6 +101,24 @@ namespace WinForms
                 //Console.WriteLine(greeting);
                 return greeting;    
             }
+        }
+
+        async Task<T> OnlyOne<T>(IEnumerable<Func<CancellationToken,Task<T>>> functions)
+        {
+            var concellationToken = new CancellationTokenSource();
+            var tasks = functions.Select(function => function(concellationToken.Token));
+            var task = await Task.WhenAny(tasks);
+            concellationToken.Cancel();
+            return await task;  
+        }
+
+        async Task<T> OnlyOne<T>(params Func<CancellationToken, Task<T>>[] functions)
+        {
+            var concellationToken = new CancellationTokenSource();
+            var tasks = functions.Select(function => function(concellationToken.Token));
+            var task = await Task.WhenAny(tasks);
+            concellationToken.Cancel();
+            return await task;
         }
 
         async Task Retry(Func<Task> f, int retryTimes = 3, int waitTime = 500)
@@ -424,5 +479,29 @@ namespace WinForms
 //    pgBar.Visible = false;
 //    pgBar.Value = 0;
 //    _cts = null;
+
+//}
+
+//RETRY PATTERN
+//private async void btnStart_Click_1(object sender, EventArgs e)
+//{
+
+//    lodingGif.Visible = true;
+
+//    try
+//    {
+
+//        var txt = await Retry(ProcessGreetingsRet);
+//        Console.WriteLine(txt);
+//    }
+//    catch (Exception ex)
+//    {
+
+//        Console.WriteLine("FAILED");
+//    }
+
+
+//    lodingGif.Visible = false;
+
 
 //}
