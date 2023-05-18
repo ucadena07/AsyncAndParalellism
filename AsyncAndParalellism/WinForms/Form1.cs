@@ -28,21 +28,22 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            var task = EvaluateValue(txtInput.Text);
-
-            Console.WriteLine($"Is Completed: {task.IsCompleted}");
-            Console.WriteLine($"Is Canceled: {task.IsCanceled}");
-            Console.WriteLine($"Is Faulted: {task.IsFaulted}");
+            _cts = new CancellationTokenSource();
 
             try
             {
-                await task;
+                var result = await Task.Run(async () =>
+                {
+                    await Task.Delay(5000);
+                    return 7;
+                }).WithCancellation(_cts.Token);
+                Console.WriteLine(result);
             }
             catch (Exception ex)
             {
-
                 Console.WriteLine(ex.Message);
-            }
+            }finally { _cts.Dispose(); }
+  
 
             lodingGif.Visible = false;
 
@@ -549,6 +550,35 @@ namespace WinForms
 //        );
 
 //    Console.WriteLine(content);
+//    lodingGif.Visible = false;
+
+
+//}
+
+
+//Controlling the result of a task
+
+//private async void btnStart_Click_1(object sender, EventArgs e)
+//{
+
+//    lodingGif.Visible = true;
+
+//    var task = EvaluateValue(txtInput.Text);
+
+//    Console.WriteLine($"Is Completed: {task.IsCompleted}");
+//    Console.WriteLine($"Is Canceled: {task.IsCanceled}");
+//    Console.WriteLine($"Is Faulted: {task.IsFaulted}");
+
+//    try
+//    {
+//        await task;
+//    }
+//    catch (Exception ex)
+//    {
+
+//        Console.WriteLine(ex.Message);
+//    }
+
 //    lodingGif.Visible = false;
 
 
