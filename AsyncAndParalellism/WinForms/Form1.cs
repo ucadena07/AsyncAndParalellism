@@ -28,39 +28,46 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            //_cts = new();
-            //var token = _cts.Token;
-            //var names = new List<string>() { "Uli","Haylee","Henry","Nigel"};
+            var task = EvaluateValue(txtInput.Text);
 
-            //var httpTasks = names.Select(x => GetGreetings(x, token));
+            Console.WriteLine($"Is Completed: {task.IsCompleted}");
+            Console.WriteLine($"Is Canceled: {task.IsCanceled}");
+            Console.WriteLine($"Is Faulted: {task.IsFaulted}");
 
-            //var task = await Task.WhenAny(httpTasks);    
-            //var content = await task;
-            //_cts.Cancel();  
-            //Console.WriteLine(content);
+            try
+            {
+                await task;
+            }
+            catch (Exception ex)
+            {
 
-            //var names = new List<string>() { "Uli","Haylee","Henry","Nigel"};
-            //var tasks = names.Select(name =>
-            //{
-            //    Func<CancellationToken, Task<string>> func = (ct) => GetGreetings(name, ct);
-            //    return func;
-            //});
+                Console.WriteLine(ex.Message);
+            }
 
-            //var content = await OnlyOne(tasks);
-            //Console.WriteLine(content);
-
-            var content = await OnlyOne(
-
-                (ct) => GetGreetings("Ulises", ct),
-                (ct) => GetGoodBye("Ulises", ct)
-                
-                );
-
-            Console.WriteLine(content);
             lodingGif.Visible = false;
 
 
         }
+
+        public Task EvaluateValue(string value)
+        {
+            var tcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);   
+
+            if(value == "1")
+            {
+                tcs.SetResult(null);
+            }else if(value == "2")
+            {
+                tcs.SetCanceled();
+            }
+            else
+            {
+                tcs.SetException(new ApplicationException("Invalid " + value));  
+            }
+
+            return tcs.Task;
+        }
+
 
         async Task<string> GetGreetings(string name, CancellationToken token)
         {
@@ -501,6 +508,47 @@ namespace WinForms
 //    }
 
 
+//    lodingGif.Visible = false;
+
+
+//}
+
+
+//Only One Pattern
+//private async void btnStart_Click_1(object sender, EventArgs e)
+//{
+
+//    lodingGif.Visible = true;
+
+//    //_cts = new();
+//    //var token = _cts.Token;
+//    //var names = new List<string>() { "Uli","Haylee","Henry","Nigel"};
+
+//    //var httpTasks = names.Select(x => GetGreetings(x, token));
+
+//    //var task = await Task.WhenAny(httpTasks);    
+//    //var content = await task;
+//    //_cts.Cancel();  
+//    //Console.WriteLine(content);
+
+//    //var names = new List<string>() { "Uli","Haylee","Henry","Nigel"};
+//    //var tasks = names.Select(name =>
+//    //{
+//    //    Func<CancellationToken, Task<string>> func = (ct) => GetGreetings(name, ct);
+//    //    return func;
+//    //});
+
+//    //var content = await OnlyOne(tasks);
+//    //Console.WriteLine(content);
+
+//    var content = await OnlyOne(
+
+//        (ct) => GetGreetings("Ulises", ct),
+//        (ct) => GetGoodBye("Ulises", ct)
+
+//        );
+
+//    Console.WriteLine(content);
 //    lodingGif.Visible = false;
 
 
