@@ -28,12 +28,23 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
+            _cts = new CancellationTokenSource();   
+
             var  names = new List<string>() { "Uli", "Haylee"};
 
-            await foreach (var item in GenerateNames())
+            try
             {
-                Console.WriteLine(item);
+                await foreach (var item in GenerateNames(_cts.Token))
+                {
+                    Console.WriteLine(item);
+                }
+
             }
+            catch (TaskCanceledException ex)
+            {
+
+                Console.WriteLine(ex.Message);
+            }finally { _cts.Cancel(); _cts = null; }
 
   
 
@@ -42,11 +53,13 @@ namespace WinForms
 
         }
 
-        async IAsyncEnumerable<string> GenerateNames()
+        async IAsyncEnumerable<string> GenerateNames(CancellationToken token = default)
         {
             yield return "Uli";
-            await Task.Delay(3000);
+            await Task.Delay(3000, token);
             yield return "Haylee";
+            await Task.Delay(3000, token);
+            yield return "Henry";
         }
 
         public Task EvaluateValue(string value)
