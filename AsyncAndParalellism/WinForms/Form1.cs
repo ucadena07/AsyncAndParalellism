@@ -28,26 +28,25 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            _cts = new CancellationTokenSource();
+            var  names = new List<string>() { "Uli", "Haylee"};
 
-            try
+            await foreach (var item in GenerateNames())
             {
-                var result = await Task.Run(async () =>
-                {
-                    await Task.Delay(5000);
-                    return 7;
-                }).WithCancellation(_cts.Token);
-                Console.WriteLine(result);
+                Console.WriteLine(item);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }finally { _cts.Dispose(); }
+
   
 
             lodingGif.Visible = false;
 
 
+        }
+
+        async IAsyncEnumerable<string> GenerateNames()
+        {
+            yield return "Uli";
+            await Task.Delay(3000);
+            yield return "Haylee";
         }
 
         public Task EvaluateValue(string value)
@@ -583,3 +582,35 @@ namespace WinForms
 
 
 //}
+
+
+/* Cancelling non cancellable tasks
+private async void btnStart_Click_1(object sender, EventArgs e)
+{
+
+    lodingGif.Visible = true;
+
+    _cts = new CancellationTokenSource();
+
+    try
+    {
+        var result = await Task.Run(async () =>
+        {
+            await Task.Delay(5000);
+            return 7;
+        }).WithCancellation(_cts.Token);
+        Console.WriteLine(result);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+    }
+    finally { _cts.Dispose(); }
+
+
+    lodingGif.Visible = false;
+
+
+}
+
+*/
