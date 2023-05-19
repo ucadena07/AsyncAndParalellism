@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
@@ -28,23 +29,40 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            _cts = new CancellationTokenSource();   
+            //_cts = new CancellationTokenSource();   
 
-            var  names = new List<string>() { "Uli", "Haylee"};
+            //var  names = new List<string>() { "Uli", "Haylee"};
+
+            //try
+            //{
+            //    await foreach (var item in GenerateNames(_cts.Token))
+            //    {
+            //        Console.WriteLine(item);
+            //    }
+
+            //}
+            //catch (TaskCanceledException ex)
+            //{
+
+            //    Console.WriteLine(ex.Message);
+            //}finally { _cts.Cancel(); _cts = null; }
+
 
             try
             {
-                await foreach (var item in GenerateNames(_cts.Token))
-                {
-                    Console.WriteLine(item);
-                }
-
+                var names = GenerateNames();
+                await ProcessNames(names);
             }
-            catch (TaskCanceledException ex)
+            catch (Exception ex)
             {
 
                 Console.WriteLine(ex.Message);
-            }finally { _cts.Cancel(); _cts = null; }
+            }
+            finally
+            {
+                _cts.Cancel(); _cts = null;
+            }
+
 
   
 
@@ -53,7 +71,17 @@ namespace WinForms
 
         }
 
-        async IAsyncEnumerable<string> GenerateNames(CancellationToken token = default)
+        async Task ProcessNames(IAsyncEnumerable<string> namesEnumerable)
+        {
+            _cts = new CancellationTokenSource();   
+
+            await foreach(var name in namesEnumerable.WithCancellation(_cts.Token))
+            {
+                Console.WriteLine(name);
+            }
+        }
+
+        async IAsyncEnumerable<string> GenerateNames([EnumeratorCancellation]CancellationToken token = default)
         {
             yield return "Uli";
             await Task.Delay(3000, token);
