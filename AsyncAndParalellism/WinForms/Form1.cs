@@ -655,3 +655,55 @@ private async void btnStart_Click_1(object sender, EventArgs e)
 }
 
 */
+
+/*
+ * Lesson 40
+ * private async void btnStart_Click_1(object sender, EventArgs e)
+        {
+
+            lodingGif.Visible = true;
+
+            //_cts = new CancellationTokenSource();   
+
+            //var  names = new List<string>() { "Uli", "Haylee"};
+
+            //try
+            //{
+            //    await foreach (var item in GenerateNames(_cts.Token))
+            //    {
+            //        Console.WriteLine(item);
+            //    }
+
+            //}
+            //catch (TaskCanceledException ex)
+            //{
+
+            //    Console.WriteLine(ex.Message);
+            //}finally { _cts.Cancel(); _cts = null; }
+
+
+            try
+            {
+                var names = GenerateNames();
+                await ProcessNames(names);
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                _cts.Cancel(); _cts = null;
+            }
+
+
+  
+
+            lodingGif.Visible = false;
+
+
+        }
+ * 
+ * 
+ */
