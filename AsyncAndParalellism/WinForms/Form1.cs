@@ -29,46 +29,145 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            //_cts = new CancellationTokenSource();   
+            var currentDict = AppDomain.CurrentDomain.BaseDirectory;
+            var destSeq = Path.Combine(currentDict, @"images\result-seq");
+            var destSem = Path.Combine(currentDict, @"images\result-sem");
 
-            //var  names = new List<string>() { "Uli", "Haylee"};
+            PrepareExecution(destSeq, destSem);
 
-            //try
-            //{
-            //    await foreach (var item in GenerateNames(_cts.Token))
-            //    {
-            //        Console.WriteLine(item);
-            //    }
+            Console.WriteLine("BEGIN");
 
-            //}
-            //catch (TaskCanceledException ex)
-            //{
+            var images = GetImages();
 
-            //    Console.WriteLine(ex.Message);
-            //}finally { _cts.Cancel(); _cts = null; }
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-
-            try
+            //sequential part 
+            foreach (var image in images)
             {
-                var names = GenerateNames();
-                await ProcessNames(names);
-            }
-            catch (Exception ex)
-            {
-
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                _cts.Cancel(); _cts = null;
+                await ProcessImage(destSeq, image);
             }
 
+            var timeSeq = stopwatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine("Sequential - duration {0} seconds", timeSeq);
+            stopwatch.Restart();
 
-  
+            var tasks = images.Select(async image =>
+            {
+                await ProcessImage(destSem, image);
+            });
+
+            await Task.WhenAll(tasks);
+
+            var timeSim = stopwatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine("Simultaneous - duration {0} seconds", timeSim);
+
+
+            WriteComparison(timeSeq, timeSim);
+
+            //simultaneous part 
+
+
+
 
             lodingGif.Visible = false;
 
+        }
 
+        private async Task ProcessImage(string directorio, ImageDTO imagen)
+        {
+            var response = await _httpClient.GetAsync(imagen.URL);
+            var content = await response.Content.ReadAsByteArrayAsync();
+
+            Bitmap bitmap;
+            using (var ms = new MemoryStream(content))
+            {
+                bitmap = new Bitmap(ms);
+            }
+
+            bitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            var destination = Path.Combine(directorio, imagen.Name);
+            bitmap.Save(destination);
+        }
+
+        public static void WriteComparison(double time1, double time2)
+        {
+            var difference = time2 - time1;
+            difference = Math.Round(difference, 2);
+            var porcentualIncrement = ((time2 - time1) / time1) * 100;
+            porcentualIncrement = Math.Round(porcentualIncrement, 2);
+            Console.WriteLine($"Difference {difference} ({porcentualIncrement}%)");
+        }
+
+        public static void PrepareExecution(string destinationParallel, string destinationSequential)
+        {
+            if (!Directory.Exists(destinationParallel))
+            {
+                Directory.CreateDirectory(destinationParallel);
+            }
+
+            if (!Directory.Exists(destinationSequential))
+            {
+                Directory.CreateDirectory(destinationSequential);
+            }
+
+            DeleteFiles(destinationSequential);
+            DeleteFiles(destinationParallel);
+        }
+
+        public static void DeleteFiles(string directory)
+        {
+            var files = Directory.EnumerateFiles(directory);
+            foreach (var file in files)
+            {
+                File.Delete(file);
+            }
+        }
+
+        private static List<ImageDTO> GetImages()
+        {
+            var images = new List<ImageDTO>();
+            for (int i = 0; i < 5; i++)
+            {
+                {
+                    images.Add(
+                    new ImageDTO()
+                    {
+                        Name = $"Spider-Man Spider-Verse {i}.jpg",
+                        URL = "https://m.media-amazon.com/images/M/MV5BMjMwNDkxMTgzOF5BMl5BanBnXkFtZTgwNTkwNTQ3NjM@._V1_UY863_.jpg"
+                    });
+                    images.Add(
+
+                    new ImageDTO()
+                    {
+                        Name = $"Spider-Man Far From Home {i}.jpg",
+                        URL = "https://m.media-amazon.com/images/M/MV5BMGZlNTY1ZWUtYTMzNC00ZjUyLWE0MjQtMTMxN2E3ODYxMWVmXkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_UY863_.jpg"
+                    });
+                    images.Add(
+
+                    new ImageDTO()
+                    {
+                        Name = $"Moana {i}.jpg",
+                        URL = "https://lumiere-a.akamaihd.net/v1/images/r_moana_header_poststreet_mobile_bd574a31.jpeg?region=0,0,640,480"
+                    });
+                    images.Add(
+
+                    new ImageDTO()
+                    {
+                        Name = $"Avengers Infinity War {i}.jpg",
+                        URL = "https://img.redbull.com/images/c_crop,x_143,y_0,h_1080,w_1620/c_fill,w_1500,h_1000/q_auto,f_auto/redbullcom/2018/04/23/e4a3d8a5-2c44-480a-b300-1b2b03e205a5/avengers-infinity-war-poster"
+                    });
+                }
+            }
+
+            return images;
+        }
+    
+
+    async Task<string> GetValue()
+        {
+            await Task.Delay(2000);
+            return "Nigel";
         }
 
         async Task ProcessNames(IAsyncEnumerable<string> namesEnumerable)
@@ -706,4 +805,24 @@ private async void btnStart_Click_1(object sender, EventArgs e)
         }
  * 
  * 
+ */
+
+/* anit patterns
+ *    private async void btnStart_Click_1(object sender, EventArgs e)
+        {
+
+            lodingGif.Visible = true;
+
+
+            //anti pattern: sync over async 
+            //var value = GetValue().Result;
+
+
+            //optimal solution
+            //var value = await GetValue();
+
+
+            lodingGif.Visible = false;
+
+        }
  */
