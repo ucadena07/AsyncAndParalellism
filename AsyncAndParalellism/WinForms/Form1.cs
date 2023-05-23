@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
@@ -29,45 +30,31 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            var currentDict = AppDomain.CurrentDomain.BaseDirectory;
-            var destSeq = Path.Combine(currentDict, @"images\result-seq");
-            var destSem = Path.Combine(currentDict, @"images\result-sem");
+            var columnMatrixA = 1100;
+            var rows = 1000;
+            var columnMatrixB = 1750;
 
-            PrepareExecution(destSeq, destSem);
+            var matrixA = Matrices.InitializeMatrix(rows, columnMatrixA);
+            var matrixB = Matrices.InitializeMatrix(columnMatrixA, columnMatrixB);
 
-            Console.WriteLine("BEGIN");
+            var result = new double[rows,columnMatrixB];  
 
-            var images = GetImages();
-
-            var stopwatch = new Stopwatch();
+            var stopwatch = Stopwatch.StartNew();   
             stopwatch.Start();
 
-            //sequential part 
-            foreach (var image in images)
-            {
-                await ProcessImage(destSeq, image);
-            }
+            await Task.Run(() => Matrices.MultiplyMatricesSequential(matrixA, matrixB, result));
+            var sequetialTime = stopwatch.ElapsedMilliseconds / 1000;
 
-            var timeSeq = stopwatch.ElapsedMilliseconds / 1000.0;
-            Console.WriteLine("Sequential - duration {0} seconds", timeSeq);
+            Console.WriteLine("Sequential  - duration in seconds: {0}", sequetialTime);
+
             stopwatch.Restart();
 
-            var tasks = images.Select(async image =>
-            {
-                await ProcessImage(destSem, image);
-            });
+            await Task.Run(() => Matrices.MultiplyMatricesParallel(matrixA, matrixB, result));
+            var parallelTime = stopwatch.ElapsedMilliseconds / 1000;
 
-            await Task.WhenAll(tasks);
+            Console.WriteLine("parallel  - duration in seconds: {0}", parallelTime);
 
-            var timeSim = stopwatch.ElapsedMilliseconds / 1000.0;
-            Console.WriteLine("Simultaneous - duration {0} seconds", timeSim);
-
-
-            WriteComparison(timeSeq, timeSim);
-
-            //simultaneous part 
-
-
+            WriteComparison(sequetialTime, parallelTime);
 
 
             lodingGif.Visible = false;
@@ -825,4 +812,60 @@ private async void btnStart_Click_1(object sender, EventArgs e)
             lodingGif.Visible = false;
 
         }
+ */
+
+/*Simultaneous tasks - task.when all
+ * 
+ *      private async void btnStart_Click_1(object sender, EventArgs e)
+        {
+
+            lodingGif.Visible = true;
+
+            var currentDict = AppDomain.CurrentDomain.BaseDirectory;
+            var destSeq = Path.Combine(currentDict, @"images\result-seq");
+            var destSem = Path.Combine(currentDict, @"images\result-sem");
+
+            PrepareExecution(destSeq, destSem);
+
+            Console.WriteLine("BEGIN");
+
+            var images = GetImages();
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            //sequential part 
+            foreach (var image in images)
+            {
+                await ProcessImage(destSeq, image);
+            }
+
+            var timeSeq = stopwatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine("Sequential - duration {0} seconds", timeSeq);
+            stopwatch.Restart();
+
+            var tasks = images.Select(async image =>
+            {
+                await ProcessImage(destSem, image);
+            });
+
+            await Task.WhenAll(tasks);
+
+            var timeSim = stopwatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine("Simultaneous - duration {0} seconds", timeSim);
+
+
+            WriteComparison(timeSeq, timeSim);
+
+            //simultaneous part 
+
+
+
+
+            lodingGif.Visible = false;
+
+        }
+ * 
+ * 
+ * 
  */
