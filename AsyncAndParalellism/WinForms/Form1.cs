@@ -34,33 +34,47 @@ namespace WinForms
             var originalFolder = Path.Combine(currentDict, @"images\result-seq");
             var destSem = Path.Combine(currentDict, @"images\foreach-sequential");
             var destParl = Path.Combine(currentDict, @"images\foreach-parallel");
-            PrepareExecution(destSem, destParl);
+         
 
             Console.WriteLine("BEGIN");
 
             //var images = GetImages();
             var files = Directory.EnumerateFiles(originalFolder);
 
+
+            var columnMatrixA = 1100;
+            var rows = 1000;
+            var columnMatrixB = 1750;
+            var matrixA = Matrices.InitializeMatrix(rows, columnMatrixA);
+            var matrixB = Matrices.InitializeMatrix(columnMatrixA, columnMatrixB);
+            var result = new double[rows, columnMatrixB];
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            //sequential part 
-            foreach (var image in files)
+            Action multipleMatrices = () => Matrices.MultiplyMatricesParallel(matrixA, matrixB,result);
+
+            Action tranformImages = () =>
             {
-                 FlipImage(image, destSem);
-            }
+                foreach (var image in files)
+                {
+                    FlipImage(image, destSem);
+                }
+            };
+
+            //sequential
+            multipleMatrices();
+            tranformImages();
+
 
             var timeSeq = stopwatch.ElapsedMilliseconds / 1000.0;
             Console.WriteLine("Sequential - duration {0} seconds", timeSeq);
             stopwatch.Restart();
 
-            Parallel.ForEach(files, file =>
-            {
-                FlipImage(file, destParl);
-            });
-   
+            //parallerl
+            PrepareExecution(destSem, destParl);
+            Parallel.Invoke(multipleMatrices, tranformImages);  
 
-  
+
 
             var timeSim = stopwatch.ElapsedMilliseconds / 1000.0;
             Console.WriteLine("Simultaneous - duration {0} seconds", timeSim);
@@ -68,7 +82,6 @@ namespace WinForms
 
             WriteComparison(timeSeq, timeSim);
 
-            //simultaneous part 
 
 
 
@@ -76,6 +89,7 @@ namespace WinForms
             lodingGif.Visible = false;
 
         }
+
         private void FlipImage(string file, string destinationDirectory)
         {
             using (var image = new Bitmap(file))
@@ -932,6 +946,66 @@ private async void btnStart_Click_1(object sender, EventArgs e)
             lodingGif.Visible = false;
 
         }
+ * 
+ * 
+ * 
+ */
+
+
+/* Paralle.ForEach
+ *        private async void btnStart_Click_1(object sender, EventArgs e)
+        {
+
+            lodingGif.Visible = true;
+
+            var currentDict = AppDomain.CurrentDomain.BaseDirectory;
+            var originalFolder = Path.Combine(currentDict, @"images\result-seq");
+            var destSem = Path.Combine(currentDict, @"images\foreach-sequential");
+            var destParl = Path.Combine(currentDict, @"images\foreach-parallel");
+            PrepareExecution(destSem, destParl);
+
+            Console.WriteLine("BEGIN");
+
+            //var images = GetImages();
+            var files = Directory.EnumerateFiles(originalFolder);
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            //sequential part 
+            foreach (var image in files)
+            {
+                 FlipImage(image, destSem);
+            }
+
+            var timeSeq = stopwatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine("Sequential - duration {0} seconds", timeSeq);
+            stopwatch.Restart();
+
+            Parallel.ForEach(files, file =>
+            {
+                FlipImage(file, destParl);
+            });
+   
+
+  
+
+            var timeSim = stopwatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine("Simultaneous - duration {0} seconds", timeSim);
+
+
+            WriteComparison(timeSeq, timeSim);
+
+            //simultaneous part 
+
+
+
+
+            lodingGif.Visible = false;
+
+        }
+ * 
+ * 
  * 
  * 
  * 
