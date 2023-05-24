@@ -25,40 +25,66 @@ namespace WinForms
 
         }
 
-        private async void btnStart_Click_1(object sender, EventArgs e)
+       private async void btnStart_Click_1(object sender, EventArgs e)
         {
 
             lodingGif.Visible = true;
 
-            var columnMatrixA = 1100;
-            var rows = 1000;
-            var columnMatrixB = 1750;
+            var currentDict = AppDomain.CurrentDomain.BaseDirectory;
+            var originalFolder = Path.Combine(currentDict, @"images\result-seq");
+            var destSem = Path.Combine(currentDict, @"images\foreach-sequential");
+            var destParl = Path.Combine(currentDict, @"images\foreach-parallel");
+            PrepareExecution(destSem, destParl);
 
-            var matrixA = Matrices.InitializeMatrix(rows, columnMatrixA);
-            var matrixB = Matrices.InitializeMatrix(columnMatrixA, columnMatrixB);
+            Console.WriteLine("BEGIN");
 
-            var result = new double[rows,columnMatrixB];  
+            //var images = GetImages();
+            var files = Directory.EnumerateFiles(originalFolder);
 
-            var stopwatch = Stopwatch.StartNew();   
+            var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            await Task.Run(() => Matrices.MultiplyMatricesSequential(matrixA, matrixB, result));
-            var sequetialTime = stopwatch.ElapsedMilliseconds / 1000;
+            //sequential part 
+            foreach (var image in files)
+            {
+                 FlipImage(image, destSem);
+            }
 
-            Console.WriteLine("Sequential  - duration in seconds: {0}", sequetialTime);
-
+            var timeSeq = stopwatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine("Sequential - duration {0} seconds", timeSeq);
             stopwatch.Restart();
 
-            await Task.Run(() => Matrices.MultiplyMatricesParallel(matrixA, matrixB, result));
-            var parallelTime = stopwatch.ElapsedMilliseconds / 1000;
+            Parallel.ForEach(files, file =>
+            {
+                FlipImage(file, destParl);
+            });
+   
 
-            Console.WriteLine("parallel  - duration in seconds: {0}", parallelTime);
+  
 
-            WriteComparison(sequetialTime, parallelTime);
+            var timeSim = stopwatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine("Simultaneous - duration {0} seconds", timeSim);
+
+
+            WriteComparison(timeSeq, timeSim);
+
+            //simultaneous part 
+
+
 
 
             lodingGif.Visible = false;
 
+        }
+        private void FlipImage(string file, string destinationDirectory)
+        {
+            using (var image = new Bitmap(file))
+            {
+                image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                var fileName = Path.GetFileName(file);
+                var destination = Path.Combine(destinationDirectory, fileName);
+                image.Save(destination);
+            }
         }
 
         private async Task ProcessImage(string directorio, ImageDTO imagen)
@@ -860,6 +886,47 @@ private async void btnStart_Click_1(object sender, EventArgs e)
             //simultaneous part 
 
 
+
+
+            lodingGif.Visible = false;
+
+        }
+ * 
+ * 
+ * 
+ */
+
+/* Parallel for
+ *    private async void btnStart_Click_1(object sender, EventArgs e)
+        {
+
+            lodingGif.Visible = true;
+
+            var columnMatrixA = 1100;
+            var rows = 1000;
+            var columnMatrixB = 1750;
+
+            var matrixA = Matrices.InitializeMatrix(rows, columnMatrixA);
+            var matrixB = Matrices.InitializeMatrix(columnMatrixA, columnMatrixB);
+
+            var result = new double[rows,columnMatrixB];  
+
+            var stopwatch = Stopwatch.StartNew();   
+            stopwatch.Start();
+
+            await Task.Run(() => Matrices.MultiplyMatricesSequential(matrixA, matrixB, result));
+            var sequetialTime = stopwatch.ElapsedMilliseconds / 1000;
+
+            Console.WriteLine("Sequential  - duration in seconds: {0}", sequetialTime);
+
+            stopwatch.Restart();
+
+            await Task.Run(() => Matrices.MultiplyMatricesParallel(matrixA, matrixB, result));
+            var parallelTime = stopwatch.ElapsedMilliseconds / 1000;
+
+            Console.WriteLine("parallel  - duration in seconds: {0}", parallelTime);
+
+            WriteComparison(sequetialTime, parallelTime);
 
 
             lodingGif.Visible = false;
