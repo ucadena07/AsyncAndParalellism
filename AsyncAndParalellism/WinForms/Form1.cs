@@ -30,13 +30,27 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            var valueWithoutInterLocked = 0;
-            Parallel.For(0, 100000, _ => valueWithoutInterLocked++);
-            Console.WriteLine("Increment without interlocked " + valueWithoutInterLocked);
+            var incrementValue = 0;
+            var sumValue = 0;
+            var mutext = new object();
 
-            var valueWithInterlocked = 0;
-            Parallel.For(0, 100000, _ => Interlocked.Increment(ref valueWithInterlocked));
-            Console.WriteLine("Increment with interlocked " + valueWithInterlocked);
+            Parallel.For(0, 10000, num =>
+            {
+                lock(mutext)
+                {
+
+                    incrementValue++;
+                    sumValue += incrementValue;
+                }
+
+            });
+
+
+
+            Console.WriteLine("Increment value: " + incrementValue);
+            Console.WriteLine("Sum value: " + sumValue);
+
+
 
             lodingGif.Visible = false;
 
@@ -1082,6 +1096,28 @@ private async void btnStart_Click_1(object sender, EventArgs e)
 
         }
  * 
+ * 
+ * 
+ * 
+ */
+
+/* INTERLOCKED
+ *     private async void btnStart_Click_1(object sender, EventArgs e)
+        {
+
+            lodingGif.Visible = true;
+
+            var valueWithoutInterLocked = 0;
+            Parallel.For(0, 100000, _ => valueWithoutInterLocked++);
+            Console.WriteLine("Increment without interlocked " + valueWithoutInterLocked);
+
+            var valueWithInterlocked = 0;
+            Parallel.For(0, 100000, _ => Interlocked.Increment(ref valueWithInterlocked));
+            Console.WriteLine("Increment with interlocked " + valueWithInterlocked);
+
+            lodingGif.Visible = false;
+
+        }
  * 
  * 
  * 
