@@ -30,14 +30,13 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            for (int i = 1; i <= 12; i++)
-            {
-                await DoMatricesTest(i);
-            }
+            var valueWithoutInterLocked = 0;
+            Parallel.For(0, 100000, _ => valueWithoutInterLocked++);
+            Console.WriteLine("Increment without interlocked " + valueWithoutInterLocked);
 
-
-
-
+            var valueWithInterlocked = 0;
+            Parallel.For(0, 100000, _ => Interlocked.Increment(ref valueWithInterlocked));
+            Console.WriteLine("Increment with interlocked " + valueWithInterlocked);
 
             lodingGif.Visible = false;
 
