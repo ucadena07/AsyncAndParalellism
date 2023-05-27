@@ -30,27 +30,17 @@ namespace WinForms
 
             lodingGif.Visible = true;
 
-            var incrementValue = 0;
-            var sumValue = 0;
-            var mutext = new object();
+            var source = Enumerable.Range(1, 20);
 
-            Parallel.For(0, 10000, num =>
+            var evenNumbers = source
+                .AsParallel()
+                .AsOrdered()
+                .Where(x => x % 2 == 0).ToList();
+
+            foreach (var item in evenNumbers)
             {
-                lock(mutext)
-                {
-
-                    incrementValue++;
-                    sumValue += incrementValue;
-                }
-
-            });
-
-
-
-            Console.WriteLine("Increment value: " + incrementValue);
-            Console.WriteLine("Sum value: " + sumValue);
-
-
+                Console.WriteLine(item);
+            }
 
             lodingGif.Visible = false;
 
@@ -1114,6 +1104,43 @@ private async void btnStart_Click_1(object sender, EventArgs e)
             var valueWithInterlocked = 0;
             Parallel.For(0, 100000, _ => Interlocked.Increment(ref valueWithInterlocked));
             Console.WriteLine("Increment with interlocked " + valueWithInterlocked);
+
+            lodingGif.Visible = false;
+
+        }
+ * 
+ * 
+ * 
+ */
+
+/*
+ * Locks
+ *    private async void btnStart_Click_1(object sender, EventArgs e)
+        {
+
+            lodingGif.Visible = true;
+
+            var incrementValue = 0;
+            var sumValue = 0;
+            var mutext = new object();
+
+            Parallel.For(0, 10000, num =>
+            {
+                lock(mutext)
+                {
+
+                    incrementValue++;
+                    sumValue += incrementValue;
+                }
+
+            });
+
+
+
+            Console.WriteLine("Increment value: " + incrementValue);
+            Console.WriteLine("Sum value: " + sumValue);
+
+
 
             lodingGif.Visible = false;
 
